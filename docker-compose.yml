@@ -11,7 +11,7 @@ services:
       - "8000:8000"
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/streamline
-      - JWT_SECRET=${JWT_SECRET:-dev-secret}
+      - JWT_SECRET=dev-secret-key-change-in-production
     depends_on:
       db:
         condition: service_healthy
@@ -25,7 +25,9 @@ services:
     container_name: streamline-frontend
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
     depends_on:
       - backend
     networks:
@@ -40,7 +42,7 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=streamline
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - streamline_postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     networks:
@@ -52,7 +54,7 @@ services:
       retries: 5
 
 volumes:
-  postgres_data:
+  streamline_postgres_data:
 
 networks:
   streamline-network:
