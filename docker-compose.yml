@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   backend:
+    platform: linux/arm64
     build:
       context: ../Backend
       dockerfile: Dockerfile
@@ -14,49 +15,25 @@ services:
     command: >
       sh -c "alembic upgrade head &&
              uvicorn app.main:app --host 0.0.0.0 --port 8000"
-    depends_on:
-      db:
-        condition: service_healthy
     networks:
       - streamline-network
 
   frontend:
+    platform: linux/arm64
     build:
       context: ../Frontend
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://${VM_IP}:8000
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID}
     container_name: streamline-frontend
     restart: unless-stopped
     ports:
       - "3000:3000"
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
-    depends_on:
-      - backend
+    env_file:
+      - .env
     networks:
       - streamline-network
-
-  db:
-    image: postgres:15-alpine
-    container_name: streamline-db
-    restart: unless-stopped
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=streamline
-    volumes:
-      - streamline_postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    networks:
-      - streamline-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-volumes:
-  streamline_postgres_data:
 
 networks:
   streamline-network:
