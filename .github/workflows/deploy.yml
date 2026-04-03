@@ -18,30 +18,33 @@ jobs:
           timeout: 300s
           command_timeout: 30m
           script: |
-            # Pull latest code safely (ignore .env changes)
+            # Pull latest code safely
             cd ~/Backend && git pull
             cd ~/Frontend && git pull
-            cd ~/DevOps
-            git stash
-            git pull
-            git stash pop
+            cd ~/DevOps && git pull
 
-            # Write .env from secrets (always fresh)
-            cat > ~/DevOps/.env << EOF
+            # Always write fresh .env from secrets
+            cat > ~/DevOps/.env << 'EOF'
             DATABASE_URL=${{ secrets.DATABASE_URL }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
             VM_IP=${{ secrets.VM_HOST }}
             NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
             EOF
 
-            # Clear Docker cache if build fails
+            cd ~/DevOps
+
+            # Clear Docker cache to avoid snapshot errors
             docker builder prune -f
 
-            # Build one at a time to avoid OOM
-            cd ~/DevOps
+            # Stop everything
             docker compose down
+
+            # Build and start one at a time
             docker compose build backend
             docker compose up -d backend
-            sleep 10
+            sleep 15
             docker compose build frontend
             docker compose up -d frontend
+
+            # Show status
+            docker compose ps
