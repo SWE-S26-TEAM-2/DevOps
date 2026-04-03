@@ -15,18 +15,33 @@ jobs:
           host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
+          timeout: 300s
+          command_timeout: 30m
           script: |
+            # Pull latest code safely (ignore .env changes)
             cd ~/Backend && git pull
             cd ~/Frontend && git pull
-            cd ~/DevOps && git pull
+            cd ~/DevOps
+            git stash
+            git pull
+            git stash pop
 
+            # Write .env from secrets (always fresh)
             cat > ~/DevOps/.env << EOF
             DATABASE_URL=${{ secrets.DATABASE_URL }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
-            NEXT_PUBLIC_API_URL=http://${{ secrets.VM_HOST }}:8000
+            VM_IP=${{ secrets.VM_HOST }}
             NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
             EOF
 
+            # Clear Docker cache if build fails
+            docker builder prune -f
+
+            # Build one at a time to avoid OOM
             cd ~/DevOps
             docker compose down
-            docker compose up -d --build
+            docker compose build backend
+            docker compose up -d backend
+            sleep 10
+            docker compose build frontend
+            docker compose up -d frontend
