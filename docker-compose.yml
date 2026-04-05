@@ -1,15 +1,12 @@
-
-
 services:
   backend:
-    platform: linux/arm64
     build:
       context: ../Backend
       dockerfile: Dockerfile
     container_name: streamline-backend
     restart: unless-stopped
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     env_file:
       - .env
     command: >
@@ -17,21 +14,44 @@ services:
              uvicorn app.main:app --host 0.0.0.0 --port 8000"
     networks:
       - streamline-network
+    deploy:
+      resources:
+        limits:
+          memory: 1G
 
   frontend:
-    platform: linux/arm64
     build:
       context: ../Frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: http://${VM_IP}:8000
+        NEXT_PUBLIC_API_URL: http://${VM_IP}/api
         NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID}
     container_name: streamline-frontend
     restart: unless-stopped
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
     env_file:
       - .env
+    depends_on:
+      - backend
+    networks:
+      - streamline-network
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  nginx:
+    image: nginx:alpine
+    container_name: streamline-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+      - frontend
     networks:
       - streamline-network
 
