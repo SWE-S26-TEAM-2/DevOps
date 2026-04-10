@@ -45,6 +45,10 @@ jobs:
             sleep 15
             docker compose build frontend
             docker compose up -d frontend
+            docker compose up -d nginx
+            docker compose up -d netdata
+            
+            
 
             # Show status
             docker compose ps
