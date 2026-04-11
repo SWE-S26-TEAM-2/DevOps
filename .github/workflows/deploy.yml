@@ -27,6 +27,7 @@ jobs:
             cat > ~/DevOps/.env << 'EOF'
             DATABASE_URL=${{ secrets.DATABASE_URL }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
+            SECRET_KEY=${{ secrets.SECRET_KEY }}
             VM_IP=${{ secrets.VM_HOST }}
             NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
             EOF
