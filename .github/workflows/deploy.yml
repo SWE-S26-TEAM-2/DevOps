@@ -18,47 +18,54 @@ jobs:
           timeout: 300s
           command_timeout: 30m
           script: |
-            # Pull latest code safely
+            # Add swap if not already added
+            if [ ! -f /swapfile ]; then
+              sudo fallocate -l 2G /swapfile
+              sudo chmod 600 /swapfile
+              sudo mkswap /swapfile
+              sudo swapon /swapfile
+              echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+            fi
+
+            # Pull latest code
             cd ~/Backend && git pull
             cd ~/Frontend && git pull
             cd ~/DevOps && git pull
 
-            # Always write fresh .env from secrets
+            # Write fresh .env from secrets
             cat > ~/DevOps/.env << 'EOF'
-            
             DATABASE_URL=${{ secrets.DATABASE_URL }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
             SECRET_KEY=${{ secrets.SECRET_KEY }}
+            GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            DOMAIN=${{ secrets.DUCKDNS_DOMAIN }}.duckdns.org
             VM_IP=${{ secrets.VM_HOST }}
-            SENDGRID_API_KEY=${{ secrets.SENDGRID_API_KEY }}
-            FROM_EMAIL=${{ secrets.FROM_EMAIL }}
-            NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
-            GOOGLE_CLIENT_ID=${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
-            GOOGLE_CLIENT_ID_ANDROID=${{ secrets.GOOGLE_CLIENT_ID_ANDROID }}
-            GOOGLE_CLIENT_ID_WEB=${{ secrets.GOOGLE_CLIENT_ID_WEB }}
-
-            
-            
+            NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
             EOF
 
-            cd ~/DevOps
+            # Setup DuckDNS
+            mkdir -p ~/duckdns
+            cat > ~/duckdns/duck.sh << 'DUCK'
+            echo url="https://www.duckdns.org/update?domains=${{ secrets.DUCKDNS_DOMAIN }}&token=${{ secrets.DUCKDNS_TOKEN }}&ip=${{ secrets.VM_HOST }}" | curl -k -o ~/duckdns/duck.log -K -
+            DUCK
+            chmod +x ~/duckdns/duck.sh
 
-            # Clear Docker cache to avoid snapshot errors
+            # Add to cron if not already there
+            (crontab -l 2>/dev/null | grep -q duckdns) || \
+            (crontab -l 2>/dev/null; echo "*/5 * * * * ~/duckdns/duck.sh >/dev/null 2>&1") | crontab -
+
+            # Clear Docker cache
             docker builder prune -f
 
-            # Stop everything
+            # Build and run one at a time
+            cd ~/DevOps
             docker compose down
-
-            # Build and start one at a time
             docker compose build backend
             docker compose up -d backend
             sleep 15
             docker compose build frontend
             docker compose up -d frontend
+            sleep 5
             docker compose up -d nginx
             docker compose up -d netdata
-            
-            
-
-            # Show status
             docker compose ps
