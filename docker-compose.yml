@@ -21,13 +21,15 @@ services:
         limits:
           memory: 1G
 
-  frontend:
+ frontend:
     build:
       context: ../Frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: http://${VM_IP}/api
+        NEXT_PUBLIC_API_URL: http://${DOMAIN}/api
         NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID}
+        NEXT_PUBLIC_RECAPTCHA_SITE_KEY: ${NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
+        NEXT_PUBLIC_USE_MOCK: "false"
     container_name: streamline-frontend
     restart: unless-stopped
     expose:
