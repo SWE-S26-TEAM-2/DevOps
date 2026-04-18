@@ -10,11 +10,10 @@ services:
     env_file:
       - .env
     command: >
-      sh -c "mkdir -p /app/app/uploads &&
-             alembic upgrade head &&
+      sh -c "alembic upgrade head &&
              uvicorn app.main:app --host 0.0.0.0 --port 8000"
     volumes:
-      - uploads_data:/app/app/uploads
+      - uploads_data:/app/uploads
     networks:
       - streamline-network
     deploy:
@@ -27,7 +26,7 @@ services:
       context: ../Frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: https://${DOMAIN}/api
+        NEXT_PUBLIC_API_URL: http://${DOMAIN}/api
         NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID}
         NEXT_PUBLIC_RECAPTCHA_SITE_KEY: ${NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
         NEXT_PUBLIC_USE_MOCK: "false"
@@ -63,7 +62,6 @@ services:
       - frontend
     networks:
       - streamline-network
-
   certbot:
     image: certbot/certbot
     container_name: streamline-certbot
@@ -97,12 +95,12 @@ services:
       - streamline-network
 
 volumes:
-  uploads_data:
-  certbot_www:
-  certbot_conf:
-  netdata_config:
-  netdata_lib:
-  netdata_cache:
+   uploads_data:
+   netdata_config:
+   netdata_lib:
+   certbot_www:
+   certbot_conf:
+   netdata_cache:
 
 networks:
   streamline-network:
