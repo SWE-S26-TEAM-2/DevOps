@@ -33,7 +33,7 @@ jobs:
             cd ~/DevOps && git pull
 
             # Write fresh .env from secrets
-            cat > ~/DevOps/.env << 'EOF'
+            cat > ~/DevOps/.env << EOF
             DATABASE_URL=${{ secrets.DATABASE_URL }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
             SECRET_KEY=${{ secrets.SECRET_KEY }}
@@ -42,38 +42,47 @@ jobs:
             VM_IP=${{ secrets.VM_HOST }}
             NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
             NEXT_PUBLIC_RECAPTCHA_SITE_KEY=${{ secrets.NEXT_PUBLIC_RECAPTCHA_SITE_KEY }}
-            NEXT_PUBLIC_API_URL=https://${{ secrets.DUCKDNS_DOMAIN }}.duckdns.org/api
+            NEXT_PUBLIC_API_URL=http://${{ secrets.DUCKDNS_DOMAIN }}.duckdns.org/api
             NEXT_PUBLIC_USE_MOCK=false
             GOOGLE_CLIENT_ID_ANDROID=${{ secrets.GOOGLE_CLIENT_ID_ANDROID }}
             GOOGLE_CLIENT_ID_WEB=${{ secrets.GOOGLE_CLIENT_ID_WEB }}
-            
-            
-            
             EOF
 
             # Setup DuckDNS
             mkdir -p ~/duckdns
-            cat > ~/duckdns/duck.sh << 'DUCK'
+            cat > ~/duckdns/duck.sh << EOF
             echo url="https://www.duckdns.org/update?domains=${{ secrets.DUCKDNS_DOMAIN }}&token=${{ secrets.DUCKDNS_TOKEN }}&ip=${{ secrets.VM_HOST }}" | curl -k -o ~/duckdns/duck.log -K -
-            DUCK
+            EOF
             chmod +x ~/duckdns/duck.sh
 
             # Add to cron if not already there
             (crontab -l 2>/dev/null | grep -q duckdns) || \
             (crontab -l 2>/dev/null; echo "*/5 * * * * ~/duckdns/duck.sh >/dev/null 2>&1") | crontab -
 
+            # Backup uploads before deploy
+            docker cp streamline-backend:/app/app/uploads ~/uploads-backup-$(date +%Y%m%d) 2>/dev/null || true
+
             # Clear Docker cache
             docker builder prune -f
 
-            # Build and run one at a time
+            # Stop containers without wiping volumes
             cd ~/DevOps
             docker compose down
+
+            # Build and start one at a time
             docker compose build backend
             docker compose up -d backend
             sleep 15
+
+            # Verify uploads directory exists
+            docker compose exec backend ls /app/app/uploads && \
+              echo "✅ Uploads directory verified" || \
+              echo "⚠️ Uploads directory not found"
+
             docker compose build frontend
             docker compose up -d frontend
             sleep 5
             docker compose up -d nginx
             docker compose up -d netdata
+
             docker compose ps
