@@ -42,7 +42,7 @@ jobs:
             VM_IP=${{ secrets.VM_HOST }}
             NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
             NEXT_PUBLIC_RECAPTCHA_SITE_KEY=${{ secrets.NEXT_PUBLIC_RECAPTCHA_SITE_KEY }}
-            NEXT_PUBLIC_API_URL=http://${{ secrets.DUCKDNS_DOMAIN }}.duckdns.org/api
+            NEXT_PUBLIC_API_URL=https://${{ secrets.DUCKDNS_DOMAIN }}.duckdns.org/api
             NEXT_PUBLIC_USE_MOCK=false
             NEXT_PUBLIC_USE_MOCK_API=false
             GOOGLE_CLIENT_ID_ANDROID=${{ secrets.GOOGLE_CLIENT_ID_ANDROID }}
