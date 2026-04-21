@@ -46,6 +46,7 @@ jobs:
             NEXT_PUBLIC_USE_MOCK=false
             NEXT_PUBLIC_USE_MOCK_API=false
             GOOGLE_CLIENT_ID_ANDROID=${{ secrets.GOOGLE_CLIENT_ID_ANDROID }}
+            GOOGLE_CLIENT_ID_IOS=${{ secrets.GOOGLE_CLIENT_ID_IOS }}
             GOOGLE_CLIENT_ID_WEB=${{ secrets.GOOGLE_CLIENT_ID_WEB }}
             EOF
 
