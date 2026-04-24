@@ -10,9 +10,11 @@ services:
     env_file:
       - .env
     command: >
-      sh -c "mkdir -p /app/app/uploads &&
-             alembic upgrade head &&
-             uvicorn app.main:app --host 0.0.0.0 --port 8000"
+  sh -c "mkdir -p /app/app/uploads/Cover &&
+         mkdir -p /app/app/uploads/Avatar &&
+         mkdir -p /app/app/uploads/Track &&
+         alembic upgrade head &&
+         uvicorn app.main:app --host 0.0.0.0 --port 8000"
     volumes:
       - uploads_data:/app/app/uploads
     networks:
