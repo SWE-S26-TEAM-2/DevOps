@@ -50,6 +50,11 @@ jobs:
             GOOGLE_CLIENT_ID_ANDROID=${{ secrets.GOOGLE_CLIENT_ID_ANDROID }}
             GOOGLE_CLIENT_ID_IOS=${{ secrets.GOOGLE_CLIENT_ID_IOS }}
             GOOGLE_CLIENT_ID_WEB=${{ secrets.GOOGLE_CLIENT_ID_WEB }}
+            ADMIN_BOOTSTRAP_SECRET=${{ secrets.ADMIN_BOOTSTRAP_SECRET }}
+            FACEBOOK_APP_ID=${{ secrets.FACEBOOK_APP_ID }}
+            FACEBOOK_APP_SECRET=${{ secrets.FACEBOOK_APP_SECRET }}
+            PUBLIC_UPLOAD_BASE_URL=${{ secrets.PUBLIC_UPLOAD_BASE_URL }}
+            STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}
             EOF
 
             # Setup DuckDNS
