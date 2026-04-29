@@ -55,6 +55,9 @@ jobs:
             FACEBOOK_APP_SECRET=${{ secrets.FACEBOOK_APP_SECRET }}
             PUBLIC_UPLOAD_BASE_URL=${{ secrets.PUBLIC_UPLOAD_BASE_URL }}
             STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}
+            CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}
+            CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}
+            CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}
             EOF
 
             # Setup DuckDNS
